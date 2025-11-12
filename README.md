@@ -1,6 +1,6 @@
  # Week 7: Secure Authentication System
  Student Name: [Piyush Goel]  
-Student ID: M0109]  
+Student ID: M010902646  
 Course: CST1510 -CW2 -  Multi-Domain Intelligence Platform 
 ## Project Description
  A command-line authentication system implementing secure password hashing
