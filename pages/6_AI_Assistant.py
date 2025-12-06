@@ -1,4 +1,5 @@
 import streamlit as st
+import os
 from openai import OpenAI
 
 # Page configuration 
@@ -17,9 +18,14 @@ if "logged_in" not in st.session_state or not st.session_state.logged_in:
 
 # Initialize OpenAI client
 try:
-    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-except:
-    st.error("API key not configured. Check .streamlit/secrets.toml")
+    # Try environment variable first, then Streamlit secrets, then .env file
+    api_key = os.getenv("OPENAI_API_KEY") or st.secrets.get("OPENAI_API_KEY")
+    if not api_key:
+        st.error("API key not configured. Set OPENAI_API_KEY environment variable or add to .streamlit/secrets.toml")
+        st.stop()
+    client = OpenAI(api_key=api_key)
+except Exception as e:
+    st.error(f"Failed to initialize OpenAI client: {e}")
     st.stop()
 
 
