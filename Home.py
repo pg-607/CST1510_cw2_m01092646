@@ -1,82 +1,78 @@
-# home page - login and registration
 import streamlit as st
-from app.services.user_service import login_user, register_user
-from app.data.users import get_user_by_username
 
-# page config must be first
-st.set_page_config(page_title="Intelligence Platform", layout="centered")
+# Page configuration 
+st.set_page_config(
+    page_title="My App",
+    layout="wide"
+)
 
-# initialize session state
+# Initialize session state
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
-
+    
 if "username" not in st.session_state:
     st.session_state.username = ""
-
+    
 if "role" not in st.session_state:
     st.session_state.role = ""
+    
+if "users" not in st.session_state:
+    # For demo only - in real app use database
+    st.session_state.users = {}
 
-# redirect if already logged in
-if st.session_state.logged_in:
-    st.switch_page("pages/1_Dashboard.py")
+st.title("🔐 Multi-Domain Intelligence Platform")
 
-# page header
-st.title("Intelligence Platform")
-st.write("Welcome! Please login or create an account")
-st.divider()
 
-# create tabs
 tab_login, tab_register = st.tabs(["Login", "Register"])
 
-# login tab
 with tab_login:
-    st.subheader("Login")
+    st.header("Login")
     
+    # Login form
     login_username = st.text_input("Username", key="login_username")
     login_password = st.text_input("Password", type="password", key="login_password")
     
-    if st.button("Log in"):
-        if not login_username or not login_password:
-            st.error("please fill in all fields")
-        else:
-            # authenticate user
-            success, message = login_user(login_username, login_password)
+    if st.button("Login"):
+        # Simple validation
+        if login_username in st.session_state.users and \
+           st.session_state.users[login_username] == login_password:
             
-            if success:
-                # get user info
-                user = get_user_by_username(login_username)
-                
-                # set session state
-                st.session_state.logged_in = True
-                st.session_state.username = login_username
-                st.session_state.role = user[3]
-                
-                st.success(message)
-                st.switch_page("pages/1_Dashboard.py")
-            else:
-                st.error(message)
+            # Set session state (Page 11 in PDF)
+            st.session_state.logged_in = True
+            st.session_state.username = login_username
+            st.session_state.role = "user"  # Default role
+            
+            # Navigate to dashboard 
+            st.success("Login successful!")
+            st.switch_page("pages/1_Dashboard.py")
+        else:
+            st.error("Invalid credentials")
 
-# register tab
 with tab_register:
-    st.subheader("Register")
+    st.header("Register")
     
-    new_username = st.text_input("Choose username", key="register_username")
-    new_password = st.text_input("Choose password", type="password", key="register_password")
+    # Registration form 
+    new_username = st.text_input("Choose a username", key="register_username")
+    new_password = st.text_input("Choose a password", type="password", key="register_password")
     confirm_password = st.text_input("Confirm password", type="password", key="register_confirm")
-    role = st.selectbox("Select role", ["user", "analyst", "admin"])
     
+    # Create account button 
     if st.button("Create account"):
-        # validation
+        # Three-step validation 
+        # 1. Empty field check
         if not new_username or not new_password:
-            st.warning("please fill in all fields")
+            st.warning("Please fill in all fields")
+        # 2. Password match
         elif new_password != confirm_password:
-            st.error("passwords do not match")
+            st.error("Passwords do not match.")
+        # 3. Uniqueness check
+        elif new_username in st.session_state.users:
+            st.error("Username already exists")
         else:
-            # register user
-            success, message = register_user(new_username, new_password, role)
-            
-            if success:
-                st.success(message)
-                st.info("go to login tab to sign in")
-            else:
-                st.error(message)
+            # Store user 
+            st.session_state.users[new_username] = new_password
+            st.success("Account created! ✅")
+            st.info("Go to login tab to sign in")
+
+st.markdown("---")
+st.warning("⚠️ **SECURITY NOTE:** This implementation stores passwords in plain text for learning purposes only. For real applications, use bcrypt for password hashing and store hashed passwords in a database.")
